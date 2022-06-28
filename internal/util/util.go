@@ -27,6 +27,7 @@ import (
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 )
 
+// GetKopsClientset returns a kops client set for a given configBase
 func GetKopsClientset(stateBucket, clusterName, domain string) (kopsClient.Clientset, error) {
 	configBase := fmt.Sprintf("%s/%s.%s", stateBucket, clusterName, domain)
 	lastIndex := strings.LastIndex(configBase, "/")
@@ -43,6 +44,7 @@ func GetKopsClientset(stateBucket, clusterName, domain string) (kopsClient.Clien
 	return kopsClientset, nil
 }
 
+// CreateClusterSpec creates a cluster spec from a cluster object
 func CreateClusterSpec(cr *v1alpha1.Kops) *kopsapi.Cluster {
 	clusterSpec := cr.Spec.ForProvider.ClusterSpec
 	clusterSpec.ConfigBase = fmt.Sprintf("%s/%s.%s", cr.Spec.ForProvider.StateBucket, meta.GetExternalName(cr), cr.Spec.ForProvider.Domain)
@@ -54,6 +56,7 @@ func CreateClusterSpec(cr *v1alpha1.Kops) *kopsapi.Cluster {
 	}
 }
 
+// CreateInstanceGroupSpec creates an instance group spec from an instance group object
 func CreateInstanceGroupSpec(cr kopsapi.InstanceGroupSpec) *kopsapi.InstanceGroup {
 	return &kopsapi.InstanceGroup{
 		ObjectMeta: metav1.ObjectMeta{
@@ -63,6 +66,7 @@ func CreateInstanceGroupSpec(cr kopsapi.InstanceGroupSpec) *kopsapi.InstanceGrou
 	}
 }
 
+// GetKubeconfigFromKopsState returns a kubeconfig for a given kops cluster
 func GetKubeconfigFromKopsState(kopsCluster *kopsapi.Cluster, kopsClientset kopsClient.Clientset) (*rest.Config, error) {
 	builder := kubeconfig.NewKubeconfigBuilder()
 
@@ -116,6 +120,7 @@ func GetKubeconfigFromKopsState(kopsCluster *kopsapi.Cluster, kopsClientset kops
 	return config, nil
 }
 
+// ValidateKopsCluster validates a kops cluster
 func ValidateKopsCluster(kopsClientset kopsClient.Clientset, kopsCluster *kopsapi.Cluster, igs *kopsapi.InstanceGroupList) (*validation.ValidationCluster, error) {
 	config, err := GetKubeconfigFromKopsState(kopsCluster, kopsClientset)
 	if err != nil {
@@ -144,6 +149,7 @@ func ValidateKopsCluster(kopsClientset kopsClient.Clientset, kopsCluster *kopsap
 	return result, nil
 }
 
+// EvaluateKopsValidationResult evaluates a kops validation result
 func EvaluateKopsValidationResult(validation *validation.ValidationCluster) (bool, []string) {
 	result := true
 	var errorMessages []string
@@ -167,6 +173,7 @@ func EvaluateKopsValidationResult(validation *validation.ValidationCluster) (boo
 	return result, errorMessages
 }
 
+// GenerateKubeConfig generates a kubeconfig for a given kops cluster
 func GenerateKubeConfig(kopsCluster *kopsapi.Cluster, kopsClientset kopsClient.Clientset) ([]byte, error) {
 	config, err := GetKubeconfigFromKopsState(kopsCluster, kopsClientset)
 	if err != nil {
@@ -207,12 +214,14 @@ func GenerateKubeConfig(kopsCluster *kopsapi.Cluster, kopsClientset kopsClient.C
 	return out, nil
 }
 
+// ClusterResourceUpToDate checks if the cluster resource is up to date
 func ClusterResourceUpToDate(old, new *kopsapi.ClusterSpec) bool {
 	new.ConfigBase = ""
 	new.MasterPublicName = ""
 	return reflect.DeepEqual(old, new)
 }
 
+// InstanceGroupListResourceUpToDate checks if the instance group list resource is up to date
 func InstanceGroupListResourceUpToDate(old []kopsapi.InstanceGroupSpec, new *kopsapi.InstanceGroupList) bool {
 	for index := range old {
 		if !InstanceGroupResourceUpToDate(&old[index], &new.Items[index].Spec) {
@@ -222,10 +231,12 @@ func InstanceGroupListResourceUpToDate(old []kopsapi.InstanceGroupSpec, new *kop
 	return true
 }
 
+// InstanceGroupResourceUpToDate checks if the instance group resource is up to date
 func InstanceGroupResourceUpToDate(old, new *kopsapi.InstanceGroupSpec) bool {
 	return reflect.DeepEqual(old, new)
 }
 
+// GetClusterStatus returns the cluster status
 func GetClusterStatus(kopsCluster *kopsapi.Cluster, cloud fi.Cloud) (*kopsapi.ClusterStatus, error) {
 	status, err := cloud.FindClusterStatus(kopsCluster)
 	if err != nil {
@@ -234,6 +245,7 @@ func GetClusterStatus(kopsCluster *kopsapi.Cluster, cloud fi.Cloud) (*kopsapi.Cl
 	return status, nil
 }
 
+// ErrNotFound is an error indicating that the resource was not found
 func ErrNotFound(err error) bool {
 	return strings.Contains(err.Error(), "not found")
 }

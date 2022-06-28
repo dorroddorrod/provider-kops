@@ -62,6 +62,7 @@ const (
 	errGetClusterStatus      = "cannot get Kops cluster status"
 	errUpdateCluster         = "cannot update Kops cluster"
 	errUpdateClusterState    = "cannot update Kops cluster state"
+	errDeleteResources       = "cannot delete Kops resources"
 )
 
 // A NoOpService does nothing.
@@ -227,7 +228,6 @@ func (c *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 
 	err = applyCmd.Run(ctx)
 
-
 	if err != nil {
 		return managed.ExternalCreation{}, errors.Wrap(err, errNewCluster)
 	}
@@ -310,7 +310,11 @@ func (c *external) Delete(ctx context.Context, mg resource.Managed) error {
 		return err
 	}
 
-	resourceops.DeleteResources(cloud, allResources)
+	err = resourceops.DeleteResources(cloud, allResources)
+	if err != nil {
+		return errors.Wrap(err, errDeleteResources)
+	}
+
 	err = c.kopsClientset.DeleteCluster(ctx, cluster)
 	if err != nil {
 		return errors.Wrap(err, errDeleteCluster)
