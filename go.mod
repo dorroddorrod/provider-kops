@@ -1,6 +1,6 @@
 module github.com/crossplane/provider-kops
 
-go 1.18
+go 1.17
 
 require (
 	github.com/crossplane/crossplane-runtime v0.16.0
