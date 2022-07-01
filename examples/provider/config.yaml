@@ -1,20 +1,5 @@
-apiVersion: v1
-kind: Secret
-metadata:
-  namespace: default
-  name: example-provider-secret
-type: Opaque
-data:
-  credentials: a3VrdQ==
----
 apiVersion: kops.crossplane.io/v1alpha1
 kind: ProviderConfig
 metadata:
   name: example
-spec:
-  credentials:
-    source: Secret
-    secretRef:
-      namespace: default
-      name: example-provider-secret
-      key: credentials
+spec: {}

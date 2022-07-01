@@ -96,8 +96,6 @@ spec:
                 required:
                 - source
                 type: object
-            required:
-            - credentials
             type: object
           status:
             description: A ProviderConfigStatus reflects the observed state of a ProviderConfig.
