@@ -1,29 +1,18 @@
 apiVersion: kops.kops.crossplane.io/v1alpha1
 kind: Kops
 metadata:
-  name: dor-test-cluster
-  annotations:
-    argocd.argoproj.io/sync-wave: "-9"
+  name: example
 spec:
   forProvider:
-    stateBucket: s3://runai-kops-state
-    domain: runailabs.com
+    stateBucket: s3://bar-kops-state
+    domain: foo.com
     region: us-east-1
     clusterSpec:
-      sshKeyName: "runai-dev"
-      kubeAPIServer:
-        oidcClientID: runai
-        oidcIssuerURL: https://app.run.ai/auth/realms/envinaclick
-        oidcUsernamePrefix: "-" 
       api:
-        loadBalancer:
-          class: Classic
-          type: Public
-          idleTimeoutSeconds: 300
+        dns: {}
       authorization:
-        rbac: {}
-      containerRuntime: docker
-      nonMasqueradeCIDR: 10.0.0.0/8
+        alwaysAllow: {}
+      nonMasqueradeCIDR: 100.64.0.0/10
       cloudProvider: aws
       iam:
         legacy: false
@@ -41,13 +30,16 @@ spec:
       kubernetesAPIAccess:
       - 0.0.0.0/0
       - ::/0
-      kubernetesVersion: 1.23.9
+      kubernetesVersion: 1.23.8
       networkCIDR: 172.20.0.0/16
+      # sshAccess:
+      # - 0.0.0.0/0
+      # - ::/0
       subnets:
       - cidr: 172.20.32.0/19
-        name: "us-east-1a"
+        name: us-east-1a
         type: Public
-        zone: "us-east-1a"
+        zone: us-east-1a
       topology:
         dns:
           type: Public
@@ -58,27 +50,25 @@ spec:
       instanceMetadata:
         httpPutResponseHopLimit: 3
         httpTokens: required
-      machineType: t3.large
+      machineType: t3.medium
       maxSize: 1
       minSize: 1
       nodeLabels:
         kops.k8s.io/instancegroup: master
       role: Master
       subnets:
-      - "us-east-1a"
+      - us-east-1a
     - image: 099720109477/ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20220615
-      machineType: m5.xlarge
-      maxSize: 2
-      minSize: 2
+      machineType: t3.medium
+      maxSize: 1
+      minSize: 1
       nodeLabels:
         kops.k8s.io/instancegroup: nodes
-        nvidia.com/gpu.deploy.device-plugin: "true"
-        nvidia.com/gpu.deploy.dcgm-exporter: "true"
       role: Node
       subnets:
-      - "us-east-1a"
+      - us-east-1a
   writeConnectionSecretToRef:
     namespace: default
-    name: dor-test-kubeconfig
+    name: example
   providerConfigRef:
     name: example
